@@ -1,0 +1,156 @@
+{% extends 'jobs/base.html' %}
+{% load static %}
+
+{% block title %}Application Tracker | Candidate Portal | JobPulse{% endblock %}
+
+{% block content %}
+<div class="py-5 bg-light border-bottom">
+  <div class="container text-center">
+    <div class="d-inline-flex mb-2">
+      <span class="badge-portal">
+        <i class="bi bi-person-check-fill"></i> Candidate Application Portal
+      </span>
+    </div>
+    <h1 class="h2 fw-bold text-dark">Track Your Application Status</h1>
+    <p class="text-muted mx-auto" style="max-width: 600px;">
+      Enter the email address you used when applying to check your current recruitment pipeline stage, profile details, and job updates.
+    </p>
+
+    <!-- Search Form -->
+    <div class="row justify-content-center mt-4">
+      <div class="col-md-7 col-lg-5">
+        <form method="GET" action="{% url 'candidate_portal' %}" class="card p-2 border shadow-sm rounded-4">
+          <div class="input-group">
+            <span class="input-group-text bg-white border-0"><i class="bi bi-envelope text-muted"></i></span>
+            <input 
+              type="email" 
+              name="email" 
+              class="form-control border-0" 
+              placeholder="e.g. alex.wright@example.com" 
+              value="{{ email_query }}"
+              required
+            >
+            <button class="btn btn-primary px-4 rounded-3" type="submit">
+              Lookup Status
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="py-5">
+  <div class="container">
+    {% if email_query and candidate %}
+      
+      <!-- Candidate Profile Summary Card -->
+      <div class="card border rounded-4 p-4 shadow-sm mb-4">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 pb-3 border-bottom mb-3">
+          <div class="d-flex align-items-center gap-3">
+            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 54px; height: 54px; font-size: 1.35rem;">
+              {{ candidate.full_name|slice:":1" }}
+            </div>
+            <div>
+              <h4 class="fw-bold text-dark mb-0">{{ candidate.full_name }}</h4>
+              <div class="text-muted small">
+                <i class="bi bi-envelope me-1"></i> {{ candidate.email }} &bull; 
+                <i class="bi bi-telephone ms-2 me-1"></i> {{ candidate.phone }}
+              </div>
+            </div>
+          </div>
+          {% if candidate.portfolio_url %}
+            <a href="{{ candidate.portfolio_url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-link-45deg me-1"></i> Portfolio Link
+            </a>
+          {% endif %}
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-12">
+            <span class="text-muted small fw-bold">Candidate Skills:</span>
+            <div class="d-flex flex-wrap gap-1 mt-1">
+              {% for s in candidate.skills_list %}
+                <span class="skill-tag">{{ s }}</span>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Applications List -->
+      <h4 class="fw-bold text-dark mb-3">Submitted Applications ({{ applications|length }})</h4>
+      
+      <div class="row g-3">
+        {% for app in applications %}
+          <div class="col-md-6 col-lg-4">
+            <div class="card border rounded-4 p-4 shadow-sm h-100 d-flex flex-column">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="badge {{ app.status_badge_class }} px-2 py-1">
+                  {{ app.status }}
+                </span>
+                <span class="text-muted small">
+                  {{ app.applied_date|date:"M d, Y" }}
+                </span>
+              </div>
+
+              <h5 class="fw-bold text-dark mb-1">
+                <a href="{% url 'job_detail' app.job.id %}" class="text-dark text-decoration-none">
+                  {{ app.job.title }}
+                </a>
+              </h5>
+              <div class="text-muted small mb-3">
+                <i class="bi bi-building me-1"></i> {{ app.job.company.name }} &bull; {{ app.job.company.location }}
+              </div>
+
+              <div class="p-3 bg-light rounded-3 small text-secondary mb-3 flex-grow-1" style="max-height: 90px; overflow-y: auto;">
+                <strong>Cover Letter:</strong><br>
+                {{ app.cover_letter }}
+              </div>
+
+              <div class="pt-2 border-top d-flex justify-content-between align-items-center mt-auto">
+                <span class="badge-salary" style="font-size: 0.72rem;">{{ app.job.salary_range }}</span>
+                <a href="{% url 'job_detail' app.job.id %}" class="btn btn-sm btn-outline-secondary">View Role</a>
+              </div>
+            </div>
+          </div>
+        {% empty %}
+          <div class="col-12">
+            <div class="alert alert-light border text-center p-4">
+              <p class="mb-0 text-muted">You have not submitted any job applications yet.</p>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+    {% elif email_query %}
+      <div class="text-center py-5">
+        <i class="bi bi-person-x text-muted" style="font-size: 3rem;"></i>
+        <h4 class="fw-bold text-dark mt-3">No Candidate Profile Found</h4>
+        <p class="text-muted">We couldn't find any applications submitted with the email <code>{{ email_query }}</code>.</p>
+        <a href="{% url 'job_list' %}" class="btn btn-primary mt-2">
+          Browse Open Positions & Apply
+        </a>
+      </div>
+    {% else %}
+      <!-- Demo hints for testing -->
+      <div class="row justify-content-center">
+        <div class="col-md-8 text-center text-muted">
+          <p class="small mb-2">Want to try demo candidate lookups? Click any of the pre-seeded candidate emails below:</p>
+          <div class="d-flex flex-wrap justify-content-center gap-2">
+            <a href="{% url 'candidate_portal' %}?email=alex.wright@example.com" class="badge bg-light text-dark border text-decoration-none p-2">
+              alex.wright@example.com (2 applications)
+            </a>
+            <a href="{% url 'candidate_portal' %}?email=samantha.chen@example.com" class="badge bg-light text-dark border text-decoration-none p-2">
+              samantha.chen@example.com (2 applications)
+            </a>
+            <a href="{% url 'candidate_portal' %}?email=marcus.vance@example.com" class="badge bg-light text-dark border text-decoration-none p-2">
+              marcus.vance@example.com (1 application)
+            </a>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

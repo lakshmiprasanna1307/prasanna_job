@@ -1,0 +1,232 @@
+{% extends 'jobs/base.html' %}
+{% load static %}
+
+{% block title %}Find Your Next Dream Role | JobPulse ATS{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section text-center">
+  <div class="container">
+    <div class="d-inline-flex mb-3">
+      <span class="badge-portal">
+        <i class="bi bi-stars"></i> Over 50+ Top Tech Companies Hiring Today
+      </span>
+    </div>
+    <h1 class="hero-title">
+      Accelerate Your Career in <span class="text-primary">Tech & Engineering</span>
+    </h1>
+    <p class="hero-subtitle">
+      Explore vetted positions at high-growth startups and global tech giants. Filter instantly by skills, remote flexibility, and salary range.
+    </p>
+
+    <!-- Search & Instant Filter Bar -->
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <div class="search-filter-card text-start">
+          <div class="row g-3 align-items-center">
+            
+            <!-- Keyword search -->
+            <div class="col-md-5">
+              <label for="jobSearchInput" class="form-label text-muted small mb-1">
+                <i class="bi bi-search text-primary me-1"></i> Keyword or Role
+              </label>
+              <div class="search-input-group">
+                <i class="bi bi-search search-icon-inside"></i>
+                <input 
+                  type="text" 
+                  id="jobSearchInput" 
+                  class="form-control search-input-styled" 
+                  placeholder="e.g. Django, Full Stack, SRE, Python..."
+                  aria-label="Keyword search"
+                >
+              </div>
+            </div>
+
+            <!-- Job Type Filter -->
+            <div class="col-md-3 col-sm-6">
+              <label for="jobTypeFilter" class="form-label text-muted small mb-1">
+                <i class="bi bi-briefcase text-primary me-1"></i> Work Arrangement
+              </label>
+              <select id="jobTypeFilter" class="form-select" style="height: 48px; border-radius: 12px;">
+                <option value="all">All Job Types</option>
+                {% for jt in job_types %}
+                  <option value="{{ jt }}">{{ jt }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Location Filter -->
+            <div class="col-md-3 col-sm-6">
+              <label for="locationFilter" class="form-label text-muted small mb-1">
+                <i class="bi bi-geo-alt text-primary me-1"></i> Location
+              </label>
+              <select id="locationFilter" class="form-select" style="height: 48px; border-radius: 12px;">
+                <option value="all">All Locations</option>
+                {% for loc in locations %}
+                  <option value="{{ loc }}">{{ loc }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Clear Action -->
+            <div class="col-md-1 d-flex align-items-end justify-content-center">
+              <button id="clearFiltersBtn" class="btn btn-outline-secondary w-100" style="height: 48px; border-radius: 12px;" title="Reset all filters">
+                <i class="bi bi-arrow-counterclockwise"></i>
+              </button>
+            </div>
+
+          </div>
+
+          <!-- Quick Skill Filter Pills -->
+          <div class="mt-3 pt-3 border-top">
+            <div class="d-flex flex-wrap align-items-center gap-2">
+              <span class="text-muted small fw-bold me-1">
+                <i class="bi bi-funnel-fill text-primary"></i> Popular Skills:
+              </span>
+              {% for skill in skills_list %}
+                <span class="filter-pill" data-skill="{{ skill }}">
+                  {{ skill }}
+                </span>
+              {% endfor %}
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Job Listings Container -->
+<section class="py-5 bg-light">
+  <div class="container">
+    
+    <!-- Results Header -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+      <div>
+        <h3 class="fw-bold text-dark mb-0">Featured Job Openings</h3>
+        <p class="text-muted small mb-0 mt-1">
+          Showing <span id="visibleJobsCount" class="fw-bold text-primary">{{ jobs|length }}</span> of {{ total_jobs_count }} active roles
+        </p>
+      </div>
+
+      <div class="d-flex align-items-center gap-2 mt-2 mt-sm-0">
+        <span class="badge bg-white text-muted border px-3 py-2 rounded-pill small">
+          <i class="bi bi-lightning-charge-fill text-warning me-1"></i> Real-time Client-Side Filtering
+        </span>
+      </div>
+    </div>
+
+    <!-- Empty State Alert (Hidden by default, triggered by JS) -->
+    <div id="noJobsFoundAlert" class="alert alert-light border shadow-sm p-5 text-center d-none my-4">
+      <div class="mb-3">
+        <i class="bi bi-search text-muted" style="font-size: 3rem;"></i>
+      </div>
+      <h4 class="fw-bold text-dark">No matching job postings found</h4>
+      <p class="text-muted mb-4">Try adjusting your keyword, resetting the skill filters, or exploring other locations.</p>
+      <button class="btn btn-primary" onclick="document.getElementById('clearFiltersBtn').click();">
+        <i class="bi bi-arrow-counterclockwise me-1"></i> Reset All Filters
+      </button>
+    </div>
+
+    <!-- Responsive Cards Grid -->
+    <div class="row g-4" id="jobsGridContainer">
+      {% for job in jobs %}
+        <div 
+          class="col-lg-6 col-xl-4 job-card-item"
+          data-title="{{ job.title|lower }}"
+          data-company="{{ job.company.name|lower }}"
+          data-description="{{ job.description|lower }}"
+          data-type="{{ job.job_type }}"
+          data-location="{{ job.company.location }}"
+          data-skills="{{ job.required_skills|lower }}"
+        >
+          <div class="job-card">
+            
+            <!-- Card Header: Company Logo & Basic Meta -->
+            <div class="d-flex align-items-start gap-3 mb-3">
+              <div class="company-logo-wrap">
+                {% if job.company.logo_url %}
+                  <img src="{{ job.company.logo_url }}" alt="{{ job.company.name }} logo" class="company-logo-img" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\'company-logo-fallback\'>{{ job.company.name|slice:':1' }}</span>';">
+                {% else %}
+                  <span class="company-logo-fallback">{{ job.company.name|slice:":1" }}</span>
+                {% endif %}
+              </div>
+              <div class="flex-grow-1 overflow-hidden">
+                <a href="{% url 'job_detail' job.id %}" class="job-card-title text-truncate">
+                  {{ job.title }}
+                </a>
+                <div class="d-flex align-items-center gap-2 mt-1">
+                  {% if job.company.website %}
+                    <a href="{{ job.company.website }}" target="_blank" class="company-name-link">
+                      {{ job.company.name }} <i class="bi bi-box-arrow-up-right small text-muted"></i>
+                    </a>
+                  {% else %}
+                    <span class="company-name-link">{{ job.company.name }}</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Location & Salary Badges -->
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+              <span class="meta-item">
+                <i class="bi bi-geo-alt-fill text-muted"></i> {{ job.company.location }}
+              </span>
+              <span class="badge-job-type">
+                <i class="bi bi-clock-fill me-1"></i> {{ job.job_type }}
+              </span>
+              <span class="badge-salary ms-auto">
+                {{ job.salary_range }}
+              </span>
+            </div>
+
+            <!-- Description Preview -->
+            <p class="text-muted small mb-3 flex-grow-1" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.5;">
+              {{ job.description }}
+            </p>
+
+            <!-- Skill Tags -->
+            <div class="d-flex flex-wrap gap-1 mb-4">
+              {% for skill in job.skills_list|slice:":4" %}
+                <span class="skill-tag">{{ skill }}</span>
+              {% endfor %}
+              {% if job.skills_list|length > 4 %}
+                <span class="skill-tag text-muted">+{{ job.skills_list|length|add:"-4" }} more</span>
+              {% endif %}
+            </div>
+
+            <!-- Card Actions -->
+            <div class="pt-3 border-top d-flex align-items-center justify-content-between mt-auto">
+              <span class="text-muted" style="font-size: 0.78rem;">
+                <i class="bi bi-calendar3 me-1"></i> Posted {{ job.posted_date|timesince }} ago
+              </span>
+              <div class="d-flex gap-2">
+                <a href="{% url 'job_detail' job.id %}" class="btn btn-sm btn-outline-secondary px-3" style="border-radius: 8px;">
+                  Details
+                </a>
+                <button 
+                  type="button" 
+                  class="btn btn-sm btn-primary px-3 btn-open-apply-modal"
+                  data-job-id="{{ job.id }}"
+                  data-job-title="{{ job.title }}"
+                  data-company-name="{{ job.company.name }}"
+                  style="border-radius: 8px;"
+                >
+                  Apply <i class="bi bi-arrow-right ms-1"></i>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      {% empty %}
+        <div class="col-12 text-center py-5">
+          <p class="text-muted">No active job listings are currently available.</p>
+        </div>
+      {% endfor %}
+    </div>
+
+  </div>
+</section>
+{% endblock %}

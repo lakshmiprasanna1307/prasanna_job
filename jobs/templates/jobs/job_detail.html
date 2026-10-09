@@ -1,0 +1,199 @@
+{% extends 'jobs/base.html' %}
+{% load static %}
+
+{% block title %}{{ job.title }} at {{ job.company.name }} | JobPulse ATS{% endblock %}
+
+{% block content %}
+<div class="py-4 bg-light border-bottom">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-0 small">
+        <li class="breadcrumb-item"><a href="{% url 'job_list' %}" class="text-decoration-none">Jobs</a></li>
+        <li class="breadcrumb-item"><span class="text-muted">{{ job.company.name }}</span></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ job.title }}</li>
+      </ol>
+    </nav>
+  </div>
+</div>
+
+<div class="py-5">
+  <div class="container">
+    <div class="row g-4">
+      
+      <!-- Main Job Details Column -->
+      <div class="col-lg-8">
+        <div class="bg-white border rounded-4 p-4 p-md-5 shadow-sm mb-4">
+          
+          <!-- Header Area -->
+          <div class="d-flex flex-wrap align-items-start gap-4 mb-4 pb-4 border-bottom">
+            <div class="company-logo-wrap" style="width: 72px; height: 72px; border-radius: 16px;">
+              {% if job.company.logo_url %}
+                <img src="{{ job.company.logo_url }}" alt="{{ job.company.name }} logo" class="company-logo-img" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\'company-logo-fallback\' style=\'font-size:1.75rem;\'>{{ job.company.name|slice:':1' }}</span>';">
+              {% else %}
+                <span class="company-logo-fallback" style="font-size: 1.75rem;">{{ job.company.name|slice:":1" }}</span>
+              {% endif %}
+            </div>
+
+            <div class="flex-grow-1">
+              <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                <span class="badge-job-type">
+                  <i class="bi bi-clock-fill me-1"></i> {{ job.job_type }}
+                </span>
+                <span class="badge bg-light text-muted border">
+                  <i class="bi bi-calendar3 me-1"></i> Posted {{ job.posted_date|date:"F d, Y" }}
+                </span>
+                {% if job.active %}
+                  <span class="badge bg-success-subtle text-success border border-success-subtle">
+                    <i class="bi bi-check-circle me-1"></i> Actively Hiring
+                  </span>
+                {% else %}
+                  <span class="badge bg-secondary-subtle text-secondary border">Closed</span>
+                {% endif %}
+              </div>
+
+              <h1 class="fw-extrabold h2 text-dark mb-2">{{ job.title }}</h1>
+              
+              <div class="d-flex flex-wrap align-items-center gap-3 text-muted">
+                <span class="fw-semibold text-dark">
+                  <i class="bi bi-building me-1 text-primary"></i> {{ job.company.name }}
+                </span>
+                <span>
+                  <i class="bi bi-geo-alt-fill me-1 text-danger"></i> {{ job.company.location }}
+                </span>
+                {% if job.company.website %}
+                  <a href="{{ job.company.website }}" target="_blank" class="text-primary text-decoration-none small">
+                    <i class="bi bi-box-arrow-up-right me-1"></i> Visit Website
+                  </a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Highlight Cards -->
+          <div class="row g-3 mb-4">
+            <div class="col-sm-6">
+              <div class="p-3 bg-light rounded-3 border">
+                <div class="text-muted small fw-semibold mb-1">Estimated Compensation</div>
+                <div class="h5 fw-bold text-success mb-0">
+                  <i class="bi bi-cash-stack me-1"></i> {{ job.salary_range }}
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="p-3 bg-light rounded-3 border">
+                <div class="text-muted small fw-semibold mb-1">Total Applicants</div>
+                <div class="h5 fw-bold text-primary mb-0">
+                  <i class="bi bi-people-fill me-1"></i> {{ job.total_applications }} submitted
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Required Skills Section -->
+          <div class="mb-4">
+            <h5 class="fw-bold text-dark mb-3">
+              <i class="bi bi-tools text-primary me-2"></i> Required Skills & Core Stack
+            </h5>
+            <div class="d-flex flex-wrap gap-2">
+              {% for skill in job.skills_list %}
+                <span class="badge bg-light text-dark border p-2 px-3 fs-6 fw-semibold rounded-pill">
+                  {{ skill }}
+                </span>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Job Description -->
+          <div class="mb-5">
+            <h5 class="fw-bold text-dark mb-3">
+              <i class="bi bi-file-earmark-text text-primary me-2"></i> Role Description & Responsibilities
+            </h5>
+            <div class="text-secondary" style="font-size: 1.02rem; line-height: 1.8; white-space: pre-line;">
+              {{ job.description }}
+            </div>
+          </div>
+
+          <!-- Apply Callout Banner -->
+          <div class="p-4 rounded-4 bg-primary text-white d-flex flex-wrap align-items-center justify-content-between gap-3 shadow">
+            <div>
+              <h5 class="fw-bold mb-1 text-white">Ready to join {{ job.company.name }}?</h5>
+              <p class="mb-0 text-white-50 small">Submit your application today. Quick review within 48 hours.</p>
+            </div>
+            <div>
+              <button 
+                type="button" 
+                class="btn btn-light text-primary fw-bold px-4 py-2 btn-open-apply-modal"
+                data-job-id="{{ job.id }}"
+                data-job-title="{{ job.title }}"
+                data-company-name="{{ job.company.name }}"
+                style="border-radius: 10px;"
+              >
+                Apply for this Position <i class="bi bi-arrow-right ms-1"></i>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="col-lg-4">
+        
+        <!-- Company Summary Card -->
+        <div class="bg-white border rounded-4 p-4 shadow-sm mb-4">
+          <h5 class="fw-bold text-dark mb-3">About {{ job.company.name }}</h5>
+          <ul class="list-unstyled mb-4 text-muted small">
+            <li class="mb-2 d-flex align-items-center gap-2">
+              <i class="bi bi-geo-alt text-primary"></i>
+              <span>Location: <strong class="text-dark">{{ job.company.location }}</strong></span>
+            </li>
+            {% if job.company.website %}
+              <li class="mb-2 d-flex align-items-center gap-2">
+                <i class="bi bi-globe text-primary"></i>
+                <span>Website: <a href="{{ job.company.website }}" target="_blank" class="text-decoration-none">{{ job.company.website }}</a></span>
+              </li>
+            {% endif %}
+            <li class="d-flex align-items-center gap-2">
+              <i class="bi bi-check2-circle text-success"></i>
+              <span>Verified Employer</span>
+            </li>
+          </ul>
+
+          <button 
+            type="button" 
+            class="btn btn-primary w-100 py-2 fw-bold btn-open-apply-modal"
+            data-job-id="{{ job.id }}"
+            data-job-title="{{ job.title }}"
+            data-company-name="{{ job.company.name }}"
+          >
+            Apply Now <i class="bi bi-send-fill ms-1"></i>
+          </button>
+        </div>
+
+        <!-- Related Jobs -->
+        {% if related_jobs %}
+          <div class="bg-white border rounded-4 p-4 shadow-sm">
+            <h5 class="fw-bold text-dark mb-3">Similar Opportunities</h5>
+            <div class="d-flex flex-col gap-3">
+              {% for rel_job in related_jobs %}
+                <div class="border-bottom pb-3 mb-3">
+                  <a href="{% url 'job_detail' rel_job.id %}" class="fw-bold text-dark text-decoration-none d-block mb-1">
+                    {{ rel_job.title }}
+                  </a>
+                  <div class="text-muted small mb-2">{{ rel_job.company.name }} &bull; {{ rel_job.company.location }}</div>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <span class="badge-salary" style="font-size: 0.72rem;">{{ rel_job.salary_range }}</span>
+                    <a href="{% url 'job_detail' rel_job.id %}" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;">View</a>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

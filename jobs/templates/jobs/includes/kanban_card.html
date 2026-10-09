@@ -1,0 +1,60 @@
+<div class="kanban-card" id="app-card-{{ app.id }}">
+  <div class="d-flex align-items-start justify-content-between mb-2">
+    <div>
+      <div class="kanban-card-candidate">{{ app.candidate.full_name }}</div>
+      <div class="kanban-card-job text-truncate" style="max-width: 190px;" title="{{ app.job.title }} at {{ app.job.company.name }}">
+        {{ app.job.title }}
+      </div>
+      <div class="text-muted" style="font-size: 0.75rem;">
+        <i class="bi bi-building"></i> {{ app.job.company.name }}
+      </div>
+    </div>
+    
+    <button 
+      type="button" 
+      class="btn btn-sm btn-light border py-0 px-2 btn-view-candidate"
+      title="View candidate profile and cover letter"
+      data-candidate-name="{{ app.candidate.full_name }}"
+      data-candidate-email="{{ app.candidate.email }}"
+      data-candidate-phone="{{ app.candidate.phone }}"
+      data-candidate-portfolio="{{ app.candidate.portfolio_url }}"
+      data-candidate-skills="{{ app.candidate.skills }}"
+      data-job-title="{{ app.job.title }}"
+      data-company-name="{{ app.job.company.name }}"
+      data-cover-letter="{{ app.cover_letter }}"
+      data-applied-date="{{ app.applied_date|date:'M d, Y, h:i A' }}"
+      data-status="{{ app.status }}"
+      style="font-size: 0.75rem;"
+    >
+      <i class="bi bi-eye"></i>
+    </button>
+  </div>
+
+  <!-- Candidate skills snippet -->
+  <div class="d-flex flex-wrap gap-1 mb-2">
+    {% for skill in app.candidate.skills_list|slice:":2" %}
+      <span class="skill-tag" style="font-size: 0.7rem; padding: 2px 6px;">{{ skill }}</span>
+    {% endfor %}
+    {% if app.candidate.skills_list|length > 2 %}
+      <span class="skill-tag text-muted" style="font-size: 0.7rem; padding: 2px 6px;">+{{ app.candidate.skills_list|length|add:"-2" }}</span>
+    {% endif %}
+  </div>
+
+  <div class="d-flex align-items-center justify-content-between pt-2 border-top mt-2">
+    <span class="text-muted" style="font-size: 0.72rem;">
+      <i class="bi bi-clock"></i> {{ app.applied_date|timesince }} ago
+    </span>
+
+    <!-- Quick stage transition form -->
+    <form action="{% url 'update_application_status' app.id %}" method="POST" class="m-0 p-0">
+      {% csrf_token %}
+      <select name="status" class="form-select form-select-sm py-0 px-2 recruiter-status-select" data-app-id="{{ app.id }}" style="font-size: 0.74rem; width: auto; height: 26px;">
+        {% for status_val, status_label in status_choices %}
+          <option value="{{ status_val }}" {% if app.status == status_val %}selected{% endif %}>
+            {{ status_label }}
+          </option>
+        {% endfor %}
+      </select>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,55 @@
+# GITHUB PUSH GUIDE — JobPulse ATS
+# Run every command below in order inside your project folder:
+#   C:\Users\Admin\Desktop\LSBP\
+
+# ─────────────────────────────────────────────────────────────
+# STEP 1:  Install Git (run once, then close & reopen terminal)
+# Download from:  https://git-scm.com/download/win
+#   → Accept all defaults during install
+# ─────────────────────────────────────────────────────────────
+
+# ─────────────────────────────────────────────────────────────
+# STEP 2:  Open PowerShell / Command Prompt in project folder
+#   → Navigate to:  C:\Users\Admin\Desktop\LSBP\
+# ─────────────────────────────────────────────────────────────
+
+# Configure Git identity (first-time only)
+git config --global user.name "kodavalimahesh21-glitch"
+git config --global user.email "your-email@example.com"
+
+# ─────────────────────────────────────────────────────────────
+# STEP 3:  Initialize & commit the project
+# ─────────────────────────────────────────────────────────────
+
+git init
+git remote add origin https://github.com/kodavalimahesh21-glitch/bhavya_job-board.git
+git add .
+git commit -m "Initial commit: JobPulse ATS & Job Board — Django 6.x, SQLite, Render-ready"
+
+# ─────────────────────────────────────────────────────────────
+# STEP 4:  Push to GitHub
+# ─────────────────────────────────────────────────────────────
+
+git branch -M main
+git push -u origin main
+
+# If the repo already has commits and push is rejected:
+#   git pull origin main --allow-unrelated-histories
+#   git push -u origin main
+
+# ─────────────────────────────────────────────────────────────
+# STEP 5:  Deploy on Render (after GitHub push succeeds)
+# ─────────────────────────────────────────────────────────────
+# 1. Go to:  https://dashboard.render.com
+# 2. Click: New + → Web Service
+# 3. Connect GitHub repo:  bhavya_job-board
+# 4. Render will auto-detect render.yaml (Blueprint mode)
+#    OR configure manually:
+#      Runtime:         Python 3
+#      Build Command:   pip install -r requirements.txt && python manage.py collectstatic --no-input && python manage.py migrate && python create_superuser.py
+#      Start Command:   gunicorn prasanna_job.wsgi:application
+# 5. Add Environment Variable:
+#      SECRET_KEY  =  (any long random string — REQUIRED for production)
+#      RENDER      =  True          (already in render.yaml)
+# 6. Click "Create Web Service"
+# 7. Open the generated URL, sign in at /login/ with: recruiter / recruiter123

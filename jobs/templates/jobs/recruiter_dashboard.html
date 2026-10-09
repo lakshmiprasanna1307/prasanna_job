@@ -1,0 +1,337 @@
+{% extends 'jobs/base.html' %}
+{% load static %}
+
+{% block title %}Recruiter ATS Pipeline Dashboard | JobPulse{% endblock %}
+
+{% block content %}
+<div class="py-4 bg-white border-bottom">
+  <div class="container-fluid px-lg-5">
+    
+    <!-- Top Action Bar -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+            <i class="bi bi-shield-lock-fill me-1"></i> Staff Portal
+          </span>
+          <span class="text-muted small">Logged in as <strong>{{ user.username }}</strong></span>
+        </div>
+        <h2 class="fw-extrabold h3 text-dark mb-0">Applicant Tracking System (ATS) Pipeline</h2>
+      </div>
+
+      <div class="d-flex flex-wrap align-items-center gap-2">
+        <a href="{% url 'recruiter_job_create' %}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
+          <i class="bi bi-plus-lg"></i> Post New Job
+        </a>
+        <a href="/admin/" target="_blank" class="btn btn-outline-secondary d-flex align-items-center gap-2">
+          <i class="bi bi-gear-fill"></i> Admin Console
+        </a>
+      </div>
+    </div>
+
+    <!-- Pipeline Metric Cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-4 col-xl-2">
+        <div class="metric-stat-card">
+          <div>
+            <div class="text-muted small fw-semibold">Active Jobs</div>
+            <div class="h3 fw-bold text-dark mb-0">{{ metrics.active_jobs }}</div>
+            <div class="text-muted" style="font-size: 0.72rem;">{{ metrics.total_jobs }} total posted</div>
+          </div>
+          <div class="stat-icon bg-light text-primary">
+            <i class="bi bi-briefcase-fill"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4 col-xl-2">
+        <div class="metric-stat-card">
+          <div>
+            <div class="text-muted small fw-semibold">Applications</div>
+            <div class="h3 fw-bold text-dark mb-0">{{ metrics.total_applications }}</div>
+            <div class="text-muted" style="font-size: 0.72rem;">Across all pipelines</div>
+          </div>
+          <div class="stat-icon bg-light text-info">
+            <i class="bi bi-file-earmark-person-fill"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4 col-xl-2">
+        <div class="metric-stat-card border-start border-4 border-primary">
+          <div>
+            <div class="text-muted small fw-semibold">Stage: Applied</div>
+            <div class="h3 fw-bold text-primary mb-0">{{ metrics.applied_count }}</div>
+            <div class="text-muted" style="font-size: 0.72rem;">New incoming</div>
+          </div>
+          <div class="stat-icon bg-primary-subtle text-primary">
+            <i class="bi bi-inbox-fill"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4 col-xl-2">
+        <div class="metric-stat-card border-start border-4 border-warning">
+          <div>
+            <div class="text-muted small fw-semibold">Under Review</div>
+            <div class="h3 fw-bold text-warning mb-0">{{ metrics.review_count }}</div>
+            <div class="text-muted" style="font-size: 0.72rem;">Screening in progress</div>
+          </div>
+          <div class="stat-icon bg-warning-subtle text-warning">
+            <i class="bi bi-hourglass-split"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4 col-xl-2">
+        <div class="metric-stat-card border-start border-4 border-success">
+          <div>
+            <div class="text-muted small fw-semibold">Shortlisted</div>
+            <div class="h3 fw-bold text-success mb-0">{{ metrics.shortlisted_count }}</div>
+            <div class="text-muted" style="font-size: 0.72rem;">Ready for interview</div>
+          </div>
+          <div class="stat-icon bg-success-subtle text-success">
+            <i class="bi bi-award-fill"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4 col-xl-2">
+        <div class="metric-stat-card border-start border-4 border-danger">
+          <div>
+            <div class="text-muted small fw-semibold">Rejected</div>
+            <div class="h3 fw-bold text-danger mb-0">{{ metrics.rejected_count }}</div>
+            <div class="text-muted" style="font-size: 0.72rem;">Archived profiles</div>
+          </div>
+          <div class="stat-icon bg-danger-subtle text-danger">
+            <i class="bi bi-x-circle-fill"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter & View Controls -->
+    <div class="card border shadow-sm p-3 mb-4 rounded-3">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        
+        <!-- Filter by Job Posting -->
+        <form method="GET" class="d-flex align-items-center gap-2 flex-grow-1" style="max-width: 480px;">
+          <label for="filterJobSelect" class="text-muted small fw-bold mb-0 text-nowrap">
+            <i class="bi bi-funnel-fill text-primary"></i> Filter by Role:
+          </label>
+          <select id="filterJobSelect" name="job" class="form-select form-select-sm" onchange="this.form.submit();">
+            <option value="">All Job Postings ({{ jobs.count }} roles)</option>
+            {% for j in jobs %}
+              <option value="{{ j.id }}" {% if selected_job_id == j.id %}selected{% endif %}>
+                {{ j.title }} &bull; {{ j.company.name }} ({{ j.applications.count }})
+              </option>
+            {% endfor %}
+          </select>
+          {% if selected_job_id %}
+            <a href="{% url 'recruiter_dashboard' %}" class="btn btn-sm btn-outline-secondary text-nowrap">
+              Reset
+            </a>
+          {% endif %}
+        </form>
+
+        <!-- View Mode Tabs -->
+        <ul class="nav nav-pills" id="dashboardTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active py-1 px-3 small fw-semibold" id="kanban-tab" data-bs-toggle="tab" data-bs-target="#kanban-view" type="button" role="tab">
+              <i class="bi bi-kanban me-1"></i> Kanban Pipeline
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link py-1 px-3 small fw-semibold" id="table-tab" data-bs-toggle="tab" data-bs-target="#table-view" type="button" role="tab">
+              <i class="bi bi-table me-1"></i> Table View
+            </button>
+          </li>
+        </ul>
+
+      </div>
+    </div>
+
+    <!-- TAB 1: KANBAN PIPELINE VIEW -->
+    <div class="tab-content" id="dashboardTabsContent">
+      <div class="tab-pane fade show active" id="kanban-view" role="tabpanel">
+        
+        <div class="kanban-board">
+          
+          <!-- Column 1: APPLIED -->
+          <div class="kanban-column stage-applied">
+            <div class="kanban-column-header">
+              <div class="kanban-column-title text-primary">
+                <span class="stage-dot"></span>
+                <span>Applied</span>
+              </div>
+              <span class="badge bg-primary rounded-pill">{{ applied_apps.count }}</span>
+            </div>
+
+            <div class="kanban-cards-wrapper flex-grow-1" id="column-applied">
+              {% for app in applied_apps %}
+                {% include 'jobs/includes/kanban_card.html' with app=app %}
+              {% empty %}
+                <div class="text-center py-4 text-muted small">No applications in this stage.</div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Column 2: UNDER REVIEW -->
+          <div class="kanban-column stage-review">
+            <div class="kanban-column-header">
+              <div class="kanban-column-title text-warning">
+                <span class="stage-dot"></span>
+                <span>Under Review</span>
+              </div>
+              <span class="badge bg-warning text-dark rounded-pill">{{ review_apps.count }}</span>
+            </div>
+
+            <div class="kanban-cards-wrapper flex-grow-1" id="column-review">
+              {% for app in review_apps %}
+                {% include 'jobs/includes/kanban_card.html' with app=app %}
+              {% empty %}
+                <div class="text-center py-4 text-muted small">No applications in review.</div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Column 3: SHORTLISTED -->
+          <div class="kanban-column stage-shortlist">
+            <div class="kanban-column-header">
+              <div class="kanban-column-title text-success">
+                <span class="stage-dot"></span>
+                <span>Shortlisted</span>
+              </div>
+              <span class="badge bg-success rounded-pill">{{ shortlisted_apps.count }}</span>
+            </div>
+
+            <div class="kanban-cards-wrapper flex-grow-1" id="column-shortlisted">
+              {% for app in shortlisted_apps %}
+                {% include 'jobs/includes/kanban_card.html' with app=app %}
+              {% empty %}
+                <div class="text-center py-4 text-muted small">No shortlisted candidates yet.</div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Column 4: REJECTED -->
+          <div class="kanban-column stage-rejected">
+            <div class="kanban-column-header">
+              <div class="kanban-column-title text-danger">
+                <span class="stage-dot"></span>
+                <span>Rejected</span>
+              </div>
+              <span class="badge bg-danger rounded-pill">{{ rejected_apps.count }}</span>
+            </div>
+
+            <div class="kanban-cards-wrapper flex-grow-1" id="column-rejected">
+              {% for app in rejected_apps %}
+                {% include 'jobs/includes/kanban_card.html' with app=app %}
+              {% empty %}
+                <div class="text-center py-4 text-muted small">No rejected candidates.</div>
+              {% endfor %}
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- TAB 2: TABLE VIEW -->
+      <div class="tab-pane fade" id="table-view" role="tabpanel">
+        <div class="card border rounded-3 shadow-sm overflow-hidden">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr class="small text-muted text-uppercase">
+                  <th>Candidate</th>
+                  <th>Job Title & Company</th>
+                  <th>Skills</th>
+                  <th>Date Applied</th>
+                  <th>Current Stage</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for app in applications %}
+                  <tr>
+                    <td>
+                      <div class="fw-bold text-dark">{{ app.candidate.full_name }}</div>
+                      <div class="text-muted small">
+                        <i class="bi bi-envelope me-1"></i>{{ app.candidate.email }}
+                      </div>
+                    </td>
+                    <td>
+                      <div class="fw-semibold text-dark">{{ app.job.title }}</div>
+                      <div class="text-muted small">{{ app.job.company.name }}</div>
+                    </td>
+                    <td>
+                      <div class="d-flex flex-wrap gap-1" style="max-width: 280px;">
+                        {% for s in app.candidate.skills_list|slice:":3" %}
+                          <span class="skill-tag" style="font-size: 0.72rem;">{{ s }}</span>
+                        {% endfor %}
+                      </div>
+                    </td>
+                    <td>
+                      <span class="small text-muted">{{ app.applied_date|date:"M d, Y" }}</span>
+                    </td>
+                    <td>
+                      <span class="badge {{ app.status_badge_class }}">{{ app.status }}</span>
+                    </td>
+                    <td class="text-end">
+                      <div class="d-inline-flex align-items-center gap-2">
+                        <button 
+                          type="button" 
+                          class="btn btn-sm btn-outline-secondary btn-view-candidate"
+                          data-candidate-name="{{ app.candidate.full_name }}"
+                          data-candidate-email="{{ app.candidate.email }}"
+                          data-candidate-phone="{{ app.candidate.phone }}"
+                          data-candidate-portfolio="{{ app.candidate.portfolio_url }}"
+                          data-candidate-skills="{{ app.candidate.skills }}"
+                          data-job-title="{{ app.job.title }}"
+                          data-company-name="{{ app.job.company.name }}"
+                          data-cover-letter="{{ app.cover_letter }}"
+                          data-applied-date="{{ app.applied_date|date:'M d, Y, h:i A' }}"
+                          data-status="{{ app.status }}"
+                        >
+                          <i class="bi bi-eye"></i> Details
+                        </button>
+
+                        <div class="dropdown">
+                          <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            Update
+                          </button>
+                          <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                            {% for status_val, status_label in status_choices %}
+                              <li>
+                                <form action="{% url 'update_application_status' app.id %}" method="POST" class="m-0 p-0">
+                                  {% csrf_token %}
+                                  <input type="hidden" name="status" value="{{ status_val }}">
+                                  <button type="submit" class="dropdown-item py-1 small {% if app.status == status_val %}active fw-bold{% endif %}">
+                                    Move to {{ status_label }}
+                                  </button>
+                                </form>
+                              </li>
+                            {% endfor %}
+                          </ul>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="6" class="text-center py-4 text-muted">
+                      No applications found matching the selected filter.
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
